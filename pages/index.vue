@@ -3,7 +3,7 @@
     <div class="max-w-3xl mx-auto">
       <template v-if="step === 1">
         <form 
-          @submit.prevent="getName"
+          @submit.prevent="getFirstName"
           class="space-y-4">
           <Label 
             for="firstName">
@@ -21,7 +21,7 @@
       </template>
       <template v-else-if="step === 2">
          <form 
-          @submit.prevent="getTask"
+          @submit.prevent="getLastName"
           class="space-y-4">
           <Label 
             for="lastName">
@@ -53,7 +53,7 @@
 
   const values = reactive({})
 
-  function getName() {
+  function getFirstName() {
     if(firstName.value) {
       values.firstName = firstName.value
       firstName.value = ''
@@ -61,7 +61,7 @@
     }
   }
 
-  function getTask() {
+  function getLastName() {
     if(lastName.value) {
       values.lastName = lastName.value
       lastName.value = ''
