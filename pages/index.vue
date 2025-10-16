@@ -67,7 +67,7 @@
           <Button 
             @click="back"
             class="duration-300 ease-in-out cursor-pointer bg-green-500 hover:bg-green-500/80">
-            back
+            confirm
           </Button>
         </div>
       </template>
