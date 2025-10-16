@@ -65,7 +65,7 @@
           </div>
 
           <Button 
-            @click="back"
+            @click="submit"
             class="duration-300 ease-in-out cursor-pointer bg-green-500 hover:bg-green-500/80">
             confirm
           </Button>
@@ -118,7 +118,7 @@
     step.value = 4
   }
 
-  function back() {
+  function submit() {
     step.value = 1
   }
 </script>
