@@ -31,15 +31,12 @@
          <div
           class="space-y-4 w-fit">
           <h2 class="text-sm leading-none font-medium">Pick a Date</h2>
-          <Calendar 
-            v-model="dateValue" 
-            :weekday-format="'short'" 
-            class="rounded-md border" />
-          <Button 
-            @click="getDate"
-            class="duration-300 ease-in-out cursor-pointer bg-green-500 hover:bg-green-500/80">
-            next
-          </Button>
+          <form @submit.prevent="getDate">
+            <Calendar 
+              v-model="dateValue" 
+              :weekday-format="'short'" 
+              class="rounded-md border" />
+          </form>
         </div>
       </template>
       <template v-else-if="step === 3">
@@ -61,20 +58,20 @@
       <template v-else>
         <div class="space-y-4">
           <p>
-            <span class="text-sm leading-none font-medium">submitted Values:</span> {{ values.fullName }} {{ formatDate(values.date) }} {{ values.time }}
+            <h2 class="text-sm leading-none font-medium mb-2">submitted Values:</h2>
+            <span class="block">Name: {{ values.fullName }}</span>
+            <span class="block">Date: {{ formatDate(values.date) }}</span>
+            <span class="block">Time: {{ values.time }}</span>
           </p>
 
           <Button 
-            @click="checkCalendar"
+            @click="back"
             class="duration-300 ease-in-out cursor-pointer bg-green-500 hover:bg-green-500/80">
-            check Calendar
+            back
           </Button>
         </div>
       </template>
     </div>
-
-    <pre>{{ values }}</pre>
-    <pre>{{ times }}</pre>
   </div>
 </template>
 
@@ -110,6 +107,7 @@
   function getDate() {
     if(dateValue.value) {
       values.date = dateValue.value
+      dateValue.value = ref(today(getLocalTimeZone()))
       step.value = 3
     }
   }
@@ -120,8 +118,8 @@
     step.value = 4
   }
 
-  function checkCalendar() {
-    step.value = 2
+  function back() {
+    step.value = 1
   }
 </script>
 
