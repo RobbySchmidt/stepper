@@ -30,6 +30,7 @@
       <template v-else-if="step === 2">
          <div
           class="space-y-4 w-fit">
+          <h2 class="text-sm leading-none font-medium">Pick a Date</h2>
           <Calendar 
             v-model="dateValue" 
             :weekday-format="'short'" 
@@ -42,19 +43,20 @@
         </div>
       </template>
       <template v-else>
-        <span>submitted Values: {{ values.fullName }} {{ formatDate(values.date) }}</span>
+        <p>
+          <span class="text-sm leading-none font-medium">submitted Values:</span> {{ values.fullName }} {{ formatDate(values.date) }}
+        </p>
       </template>
     </div>
   </div>
 </template>
 
-<script setup lang="ts">
-  import type { DateValue } from "@internationalized/date"
+<script setup>
   import { getLocalTimeZone, today } from "@internationalized/date"
   import { ref } from "vue"
   import { Calendar } from "@/components/ui/calendar"
 
-  const dateValue = ref(today(getLocalTimeZone())) as Ref<DateValue>
+  const dateValue = ref(today(getLocalTimeZone()))
 
   const step = ref(1)
 
