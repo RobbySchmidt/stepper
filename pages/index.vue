@@ -1,76 +1,80 @@
 <template>
   <div class="container mx-auto px-4 py-12">
     <div class="max-w-3xl mx-auto">
-      <template v-if="step === 1">
-        <form 
-          @submit.prevent="getName"
-          class="space-y-4">
-          <Label 
-            for="firstName">
-            First Name
-          </Label>
-          <Input 
-            type="text" 
-            v-model="firstName" />
+      <Transition name="slide-fade" mode="out-in">
+        <div :key="step">
+          <template v-if="step === 1">
+            <form 
+              @submit.prevent="getName"
+              class="space-y-4">
+              <Label 
+                for="firstName">
+                First Name
+              </Label>
+              <Input 
+                type="text" 
+                v-model="firstName" />
 
-          <Label 
-            for="lastName">
-            Last Name
-          </Label>
-          <Input 
-            type="text" 
-            v-model="lastName" />
-          <Button 
-            type="submit"
-            class="duration-300 ease-in-out cursor-pointer bg-green-500 hover:bg-green-500/80">
-            next
-          </Button>
-        </form>
-      </template>
-      <template v-else-if="step === 2">
-         <div
-          class="space-y-4 w-fit">
-          <h2 class="text-sm leading-none font-medium">Pick a Date</h2>
-          <form @submit.prevent="getDate">
-            <Calendar 
-              v-model="dateValue" 
-              :weekday-format="'short'" 
-              class="rounded-md border" />
-          </form>
-        </div>
-      </template>
-      <template v-else-if="step === 3">
-         <div
-            class="space-y-4">
-            <h2 class="text-sm leading-none font-medium">Pick a Time</h2>
-          <ul class="space-y-1">
-            <li v-for="slot in times"
-              @click="getTime(slot)">
-              <span 
-                v-if="slot.available" 
-                class="block w-full bg-green-500 text-white rounded-md px-2 py-1 text-center cursor-pointer">
-                  {{ slot.time }}
-              </span>
-            </li>
-          </ul>
-        </div>
-      </template>
-      <template v-else>
-        <div class="space-y-4">
-          <div>
-            <h2 class="text-sm leading-none font-medium mb-2">submitted Values:</h2>
-            <span class="block">Name: {{ values.fullName }}</span>
-            <span class="block">Date: {{ formatDate(values.date) }}</span>
-            <span class="block">Time: {{ values.time }}</span>
-          </div>
+              <Label 
+                for="lastName">
+                Last Name
+              </Label>
+              <Input 
+                type="text" 
+                v-model="lastName" />
+              <Button 
+                type="submit"
+                class="duration-300 ease-in-out cursor-pointer bg-green-500 hover:bg-green-500/80">
+                next
+              </Button>
+            </form>
+          </template>
+          <template v-else-if="step === 2">
+            <div
+              class="space-y-4 w-fit">
+              <h2 class="text-sm leading-none font-medium">Pick a Date</h2>
+              <form @submit.prevent="getDate">
+                <Calendar 
+                  v-model="dateValue" 
+                  :weekday-format="'short'" 
+                  class="rounded-md border" />
+              </form>
+            </div>
+          </template>
+          <template v-else-if="step === 3">
+            <div
+                class="space-y-4">
+                <h2 class="text-sm leading-none font-medium">Pick a Time</h2>
+              <ul class="space-y-1">
+                <li v-for="slot in times"
+                  @click="getTime(slot)">
+                  <span 
+                    v-if="slot.available" 
+                    class="block w-full bg-green-500 text-white rounded-md px-2 py-1 text-center cursor-pointer">
+                      {{ slot.time }}
+                  </span>
+                </li>
+              </ul>
+            </div>
+          </template>
+          <template v-else>
+            <div class="space-y-4">
+              <div>
+                <h2 class="text-sm leading-none font-medium mb-2">submitted Values:</h2>
+                <span class="block">Name: {{ values.fullName }}</span>
+                <span class="block">Date: {{ formatDate(values.date) }}</span>
+                <span class="block">Time: {{ values.time }}</span>
+              </div>
 
-          <Button 
-            @click="submit"
-            class="duration-300 ease-in-out cursor-pointer bg-green-500 hover:bg-green-500/80">
-            confirm
-          </Button>
+              <Button 
+                @click="submit"
+                class="duration-300 ease-in-out cursor-pointer bg-green-500 hover:bg-green-500/80">
+                confirm
+              </Button>
+            </div>
+          </template>
         </div>
-      </template>
+      </Transition>
     </div>
   </div>
 </template>
@@ -124,5 +128,20 @@
 </script>
 
 <style scoped>
-
+.slide-fade-enter-active {
+  transition: all 0.4s ease;
+}
+.slide-fade-leave-active {
+  transition: all 0.3s ease;
+  position: absolute;
+  width: 100%;
+}
+.slide-fade-enter-from {
+  opacity: 0;
+  transform: translateX(30px);
+}
+.slide-fade-leave-to {
+  opacity: 0;
+  transform: translateX(-30px);
+}
 </style>
