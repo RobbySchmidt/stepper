@@ -42,10 +42,9 @@
         </div>
       </template>
       <template v-else>
-        <span>submitted Name: {{ values.fullName }} {{ formatDate(values.date) }}</span>
+        <span>submitted Values: {{ values.fullName }} {{ formatDate(values.date) }}</span>
       </template>
     </div>
-    <pre>{{ values }}</pre>
   </div>
 </template>
 
