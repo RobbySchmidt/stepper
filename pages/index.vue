@@ -128,20 +128,16 @@
 </script>
 
 <style scoped>
-.slide-fade-enter-active {
-  transition: all 0.4s ease;
-}
-.slide-fade-leave-active {
-  transition: all 0.3s ease;
-  position: absolute;
-  width: 100%;
-}
-.slide-fade-enter-from {
-  opacity: 0;
-  transform: translateX(30px);
-}
-.slide-fade-leave-to {
-  opacity: 0;
-  transform: translateX(-30px);
-}
+  .slide-fade-enter-active {
+    transition: all 0.3s ease-in-out;
+  }
+  .slide-fade-leave-active {
+    transition: all 0.3s ease-in-out;
+  }
+  .slide-fade-enter-from {
+    opacity: 0;
+  }
+  .slide-fade-leave-to {
+    opacity: 0;
+  }
 </style>
