@@ -42,12 +42,39 @@
           </Button>
         </div>
       </template>
+      <template v-else-if="step === 3">
+         <div
+            class="space-y-4">
+            <h2 class="text-sm leading-none font-medium">Pick a Time</h2>
+          <ul class="space-y-1">
+            <li v-for="slot in times"
+              @click="getTime(slot)">
+              <span 
+                v-if="slot.available" 
+                class="block w-full bg-green-500 text-white rounded-md px-2 py-1 text-center cursor-pointer">
+                  {{ slot.time }}
+              </span>
+            </li>
+          </ul>
+        </div>
+      </template>
       <template v-else>
-        <p>
-          <span class="text-sm leading-none font-medium">submitted Values:</span> {{ values.fullName }} {{ formatDate(values.date) }}
-        </p>
+        <div class="space-y-4">
+          <p>
+            <span class="text-sm leading-none font-medium">submitted Values:</span> {{ values.fullName }} {{ formatDate(values.date) }} {{ values.time }}
+          </p>
+
+          <Button 
+            @click="checkCalendar"
+            class="duration-300 ease-in-out cursor-pointer bg-green-500 hover:bg-green-500/80">
+            check Calendar
+          </Button>
+        </div>
       </template>
     </div>
+
+    <pre>{{ values }}</pre>
+    <pre>{{ times }}</pre>
   </div>
 </template>
 
@@ -62,6 +89,12 @@
 
   const firstName = ref('')
   const lastName = ref('')
+
+  const times = ref([
+    {time: '09:00 - 10:00', available: true},
+    {time: '11:00 - 12:00', available: true},
+    {time: '14:00 - 15:00', available: true}
+  ])
 
   const values = reactive({})
 
@@ -79,6 +112,16 @@
       values.date = dateValue.value
       step.value = 3
     }
+  }
+
+  function getTime(slot) {
+    values.time = slot.time
+    slot.available = false
+    step.value = 4
+  }
+
+  function checkCalendar() {
+    step.value = 2
   }
 </script>
 
