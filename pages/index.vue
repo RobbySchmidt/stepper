@@ -57,12 +57,12 @@
       </template>
       <template v-else>
         <div class="space-y-4">
-          <p>
+          <div>
             <h2 class="text-sm leading-none font-medium mb-2">submitted Values:</h2>
             <span class="block">Name: {{ values.fullName }}</span>
             <span class="block">Date: {{ formatDate(values.date) }}</span>
             <span class="block">Time: {{ values.time }}</span>
-          </p>
+          </div>
 
           <Button 
             @click="back"
