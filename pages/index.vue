@@ -3,7 +3,7 @@
     <div class="max-w-3xl mx-auto">
       <template v-if="step === 1">
         <form 
-          @submit.prevent="getFirstName"
+          @submit.prevent="getName"
           class="space-y-4">
           <Label 
             for="firstName">
@@ -12,17 +12,7 @@
           <Input 
             type="text" 
             v-model="firstName" />
-          <Button 
-            type="submit"
-            class="duration-300 ease-in-out cursor-pointer bg-green-500 hover:bg-green-500/80">
-            next
-          </Button>
-        </form>
-      </template>
-      <template v-else-if="step === 2">
-         <form 
-          @submit.prevent="getLastName"
-          class="space-y-4">
+
           <Label 
             for="lastName">
             Last Name
@@ -37,15 +27,36 @@
           </Button>
         </form>
       </template>
+      <template v-else-if="step === 2">
+         <div
+          class="space-y-4 w-fit">
+          <Calendar 
+            v-model="dateValue" 
+            :weekday-format="'short'" 
+            class="rounded-md border" />
+          <Button 
+            @click="getDate"
+            class="duration-300 ease-in-out cursor-pointer bg-green-500 hover:bg-green-500/80">
+            next
+          </Button>
+        </div>
+      </template>
       <template v-else>
-        <span>submitted Name: {{ values.firstName }} {{ values.lastName }}</span>
+        <span>submitted Name: {{ values.fullName }} {{ formatDate(values.date) }}</span>
       </template>
     </div>
     <pre>{{ values }}</pre>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+  import type { DateValue } from "@internationalized/date"
+  import { getLocalTimeZone, today } from "@internationalized/date"
+  import { ref } from "vue"
+  import { Calendar } from "@/components/ui/calendar"
+
+  const dateValue = ref(today(getLocalTimeZone())) as Ref<DateValue>
+
   const step = ref(1)
 
   const firstName = ref('')
@@ -53,22 +64,21 @@
 
   const values = reactive({})
 
-  function getFirstName() {
-    if(firstName.value) {
-      values.firstName = firstName.value
+  function getName() {
+    if(firstName.value && lastName.value) {
+      values.fullName = firstName.value + ' ' + lastName.value
       firstName.value = ''
+      lastName.value = ''
       step.value = 2
     }
   }
 
-  function getLastName() {
-    if(lastName.value) {
-      values.lastName = lastName.value
-      lastName.value = ''
+  function getDate() {
+    if(dateValue.value) {
+      values.date = dateValue.value
       step.value = 3
     }
   }
-
 </script>
 
 <style scoped>
