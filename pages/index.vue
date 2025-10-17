@@ -1,7 +1,7 @@
 <template>
   <div class="container mx-auto px-4 py-12">
     <div class="max-w-3xl mx-auto">
-      <Transition name="slide-fade" mode="out-in">
+      <Transition name="fade" mode="out-in">
         <div :key="step">
           <template v-if="step === 1">
             <form 
@@ -27,6 +27,10 @@
                 class="duration-300 ease-in-out cursor-pointer bg-green-500 hover:bg-green-500/80">
                 next
               </Button>
+              <p v-if="errorMessage" 
+                class="text-red-500">
+                {{ errorMessage }}
+              </p>
             </form>
           </template>
           <template v-else-if="step === 2">
@@ -60,7 +64,7 @@
           <template v-else>
             <div class="space-y-4">
               <div>
-                <h2 class="text-sm leading-none font-medium mb-2">submitted Values:</h2>
+                <h2 class="text-sm leading-none font-medium mb-2">Your appointment:</h2>
                 <span class="block">Name: {{ values.fullName }}</span>
                 <span class="block">Date: {{ formatDate(values.date) }}</span>
                 <span class="block">Time: {{ values.time }}</span>
@@ -91,6 +95,8 @@
   const firstName = ref('')
   const lastName = ref('')
 
+  const errorMessage = ref('')
+
   const times = ref([
     {time: '09:00 - 10:00', available: true},
     {time: '11:00 - 12:00', available: true},
@@ -100,7 +106,14 @@
   const values = reactive({})
 
   function getName() {
-    if(firstName.value && lastName.value) {
+    if(!firstName.value || !lastName.value) {
+      errorMessage.value = 'Please enter your full Name.'
+
+      setTimeout(() => {
+        errorMessage.value =''
+      }, 3000)
+    }
+    else {
       values.fullName = firstName.value + ' ' + lastName.value
       firstName.value = ''
       lastName.value = ''
@@ -128,16 +141,12 @@
 </script>
 
 <style scoped>
-  .slide-fade-enter-active {
-    transition: all 0.3s ease-in-out;
+  .fade-enter-active,
+  .fade-leave-active {
+    transition: all 0.3s;
   }
-  .slide-fade-leave-active {
-    transition: all 0.3s ease-in-out;
-  }
-  .slide-fade-enter-from {
-    opacity: 0;
-  }
-  .slide-fade-leave-to {
+  .fade-enter-from,
+  .fade-leave-to {
     opacity: 0;
   }
 </style>
