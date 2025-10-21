@@ -61,11 +61,11 @@
               </ul>
             </div>
           </template>
-          <template v-else>
+          <template v-else-if="step === 4">
             <div class="space-y-4">
               <div>
                 <h2 class="text-sm leading-none font-medium mb-2">Your appointment:</h2>
-                <span class="block">Name: {{ values.fullName }}</span>
+                <span class="block">Name: {{ values.name }}</span>
                 <span class="block">Date: {{ formatDate(values.date) }}</span>
                 <span class="block">Time: {{ values.time }}</span>
               </div>
@@ -77,33 +77,63 @@
               </Button>
             </div>
           </template>
+          <template v-else>
+            <div>
+              <p class="bg-green-400 text-white w-fit mx-auto px-3 py-2 text-xl">Your appointment has been successfully booked.</p>
+            </div>
+          </template>
         </div>
       </Transition>
+
+      <div class="max-w-3xl mx-auto">
+        <ul>
+          <li v-for="item in book">
+            {{ item.name }}
+            <ul>
+              <li v-for="table in item.table">
+                {{ table.test_table_id.relationship }}
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </div>
     </div>
+    {{ values }}
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
   import { getLocalTimeZone, today } from "@internationalized/date"
   import { ref } from "vue"
   import { Calendar } from "@/components/ui/calendar"
 
   const dateValue = ref(today(getLocalTimeZone()))
 
-  const step = ref(1)
+  const step = ref<number>(1)
 
-  const firstName = ref('')
-  const lastName = ref('')
+  const firstName = ref<string>('')
+  const lastName = ref<string>('')
 
-  const errorMessage = ref('')
+  const errorMessage = ref<string>('')
 
-  const times = ref([
+  interface TimeSlots {
+    time: string,
+    available: boolean
+  }
+
+  const times = ref<TimeSlots[]>([
     {time: '09:00 - 10:00', available: true},
     {time: '11:00 - 12:00', available: true},
     {time: '14:00 - 15:00', available: true}
   ])
 
-  const values = reactive({})
+   interface Values {
+    name: string;
+    date: string;
+    time: string;
+  }
+
+  const values = reactive<Partial<Values>>({})
 
   function getName() {
     if(!firstName.value || !lastName.value) {
@@ -114,7 +144,7 @@
       }, 3000)
     }
     else {
-      values.fullName = firstName.value + ' ' + lastName.value
+      values.name = firstName.value + ' ' + lastName.value
       firstName.value = ''
       lastName.value = ''
       step.value = 2
@@ -122,9 +152,8 @@
   }
 
   function getDate() {
-    if(dateValue.value) {
-      values.date = dateValue.value
-      dateValue.value = ref(today(getLocalTimeZone()))
+    if (dateValue.value) {
+      values.date = dateValue.value.toString()
       step.value = 3
     }
   }
@@ -135,9 +164,51 @@
     step.value = 4
   }
 
-  function submit() {
-    step.value = 1
+  const { createItems, getItems } = useDirectusItems()
+
+  const submit = async (): Promise<void> => {
+    try {
+      const items: Values[] = [
+        {
+          name: values.name,
+          date: values.date,
+          time: values.time
+        },
+      ]
+
+      await createItems({
+        collection: 'bookings',
+        items,
+      })
+
+      console.log('Articles created successfully!')
+    } catch (error) {
+      console.error('Error creating articles:', error)
+    }
+
+    step.value = 5
+
+    setTimeout(() => {
+      step.value = 1
+    }, 3000)
   }
+
+  interface Bookings {
+    name: string;
+    date: string;
+    time: string;
+    table: any[];
+  }
+
+  const book = await getItems<Bookings>({
+    collection: "bookings",
+    params: {
+      fields: ['*', '*.*', 'table.test_table_id.*'],
+      // filter: {
+      //   name: 'test name'
+      // },
+    },
+  });
 </script>
 
 <style scoped>

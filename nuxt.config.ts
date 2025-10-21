@@ -10,8 +10,20 @@ export default defineNuxtConfig({
     ],
   },
 
+  directus: {      
+    url: process.env.DIRECTUS_URL,
+    autoFetch: false,
+  },
+ 
+  runtimeConfig: {
+    public: {
+      directusUrl: process.env.DIRECTUS_URL,
+    },
+    redirects: false,
+  },
+
   devtools: { enabled: false },
-  modules: ['shadcn-nuxt'],
+  modules: ['shadcn-nuxt', 'nuxt-directus'],
   shadcn: {
     /**
      * Prefix for all the imported component
