@@ -87,7 +87,7 @@
 
       <div class="max-w-3xl mx-auto">
         <ul>
-          <li v-for="item in book">
+          <li v-for="item in bookings">
             {{ item.name }}
             <ul>
               <li v-for="table in item.table">
@@ -135,7 +135,28 @@
 
   const values = reactive<Partial<Values>>({})
 
-  function getName() {
+  interface Bookings {
+    name: string;
+    date: string;
+    time: string;
+    table: any[];
+  }
+
+  const bookings = ref<Bookings[]>([])
+
+  const fetchBookings = async () => {
+    bookings.value = await getItems<Bookings>({
+      collection: "bookings",
+      params: {
+        fields: ['*', '*.*', 'table.test_table_id.*'],
+        // filter: {
+        //   name: 'test name'
+        // },
+      },
+    });
+  }
+
+  function getName(): void {
     if(!firstName.value || !lastName.value) {
       errorMessage.value = 'Please enter your full Name.'
 
@@ -144,21 +165,21 @@
       }, 3000)
     }
     else {
-      values.name = firstName.value + ' ' + lastName.value
+      values.name = `${firstName.value} ${lastName.value}`
       firstName.value = ''
       lastName.value = ''
       step.value = 2
     }
   }
 
-  function getDate() {
+  function getDate(): void {
     if (dateValue.value) {
       values.date = dateValue.value.toString()
       step.value = 3
     }
   }
 
-  function getTime(slot) {
+  function getTime(slot: TimeSlots): void {
     values.time = slot.time
     slot.available = false
     step.value = 4
@@ -188,27 +209,17 @@
 
     step.value = 5
 
+    fetchBookings()
+
     setTimeout(() => {
       step.value = 1
     }, 3000)
   }
 
-  interface Bookings {
-    name: string;
-    date: string;
-    time: string;
-    table: any[];
-  }
-
-  const book = await getItems<Bookings>({
-    collection: "bookings",
-    params: {
-      fields: ['*', '*.*', 'table.test_table_id.*'],
-      // filter: {
-      //   name: 'test name'
-      // },
-    },
-  });
+  onMounted(() => {
+    fetchBookings()
+  })
+  
 </script>
 
 <style scoped>
