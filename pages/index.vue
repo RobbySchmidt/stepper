@@ -33,6 +33,7 @@
               </p>
             </form>
           </template>
+
           <template v-else-if="step === 2">
             <div
               class="space-y-4 w-fit">
@@ -45,22 +46,21 @@
               </form>
             </div>
           </template>
+
           <template v-else-if="step === 3">
-            <div
-                class="space-y-4">
-                <h2 class="text-sm leading-none font-medium">Pick a Time</h2>
+            <div class="space-y-4">
+              <h2 class="text-sm leading-none font-medium">Pick a Time</h2>
               <ul class="space-y-1">
-                <li v-for="slot in times"
-                  @click="getTime(slot)">
-                  <span 
-                    v-if="slot.available" 
-                    class="block w-full bg-green-500 text-white rounded-md px-2 py-1 text-center cursor-pointer">
-                      {{ slot.time }}
+                <li v-for="slot in times" :key="slot.times_id.id" @click="getTime(slot)">
+                  <span v-if="slot.time_available && slot.times_id.time_available"
+                        class="block w-full bg-green-500 text-white rounded-md px-2 py-1 text-center cursor-pointer">
+                    {{ slot.times_id.time }}
                   </span>
                 </li>
               </ul>
             </div>
           </template>
+
           <template v-else-if="step === 4">
             <div class="space-y-4">
               <div>
@@ -77,6 +77,7 @@
               </Button>
             </div>
           </template>
+
           <template v-else>
             <div>
               <p class="bg-green-400 text-white w-fit mx-auto px-3 py-2 text-xl">Your appointment has been successfully booked.</p>
@@ -85,141 +86,150 @@
         </div>
       </Transition>
 
+      <Button
+        @click="goBack()"
+        class="duration-300 ease-in-out cursor-pointer bg-red-500 hover:bg-red-500/80 mt-2">
+        back
+      </Button>
+
       <div class="max-w-3xl mx-auto">
         <ul>
           <li v-for="item in bookings">
-            {{ item.name }}
-            <ul>
-              <li v-for="table in item.table">
-                {{ table.test_table_id.relationship }}
-              </li>
-            </ul>
+            {{ item.name }} {{ item.time_available }}
           </li>
         </ul>
       </div>
     </div>
-    {{ values }}
+
+    <pre>{{dates}}</pre>
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
   import { getLocalTimeZone, today } from "@internationalized/date"
-  import { ref } from "vue"
+  import { ref, reactive, onMounted } from "vue"
   import { Calendar } from "@/components/ui/calendar"
 
+  const { createItems, getItems, updateItem } = useDirectusItems()
+
+  const step = ref(1)
+  const firstName = ref('')
+  const lastName = ref('')
+  const errorMessage = ref('')
+
   const dateValue = ref(today(getLocalTimeZone()))
+  const selectedDate = ref(null)
+  const selectedTime = ref(null)
+  const times = ref([])
 
-  const step = ref<number>(1)
+  const values = reactive({
+    name: '',
+    date: '',
+    time: ''
+  })
 
-  const firstName = ref<string>('')
-  const lastName = ref<string>('')
+  const bookings = ref([])
+  const dates = ref([])
 
-  const errorMessage = ref<string>('')
-
-  interface TimeSlots {
-    time: string,
-    available: boolean
+  const fetchDates = async () => {
+    dates.value = await getItems({
+      collection: "dates",
+      params: {
+        fields: [
+          '*',
+          'times_available.*',
+          'times_available.times_id.*'
+        ],
+      },
+    })
   }
-
-  const times = ref<TimeSlots[]>([
-    {time: '09:00 - 10:00', available: true},
-    {time: '11:00 - 12:00', available: true},
-    {time: '14:00 - 15:00', available: true}
-  ])
-
-   interface Values {
-    name: string;
-    date: string;
-    time: string;
-  }
-
-  const values = reactive<Partial<Values>>({})
-
-  interface Bookings {
-    name: string;
-    date: string;
-    time: string;
-    table: any[];
-  }
-
-  const bookings = ref<Bookings[]>([])
 
   const fetchBookings = async () => {
-    bookings.value = await getItems<Bookings>({
+    bookings.value = await getItems({
       collection: "bookings",
-      params: {
-        fields: ['*', '*.*', 'table.test_table_id.*'],
-        // filter: {
-        //   name: 'test name'
-        // },
-      },
-    });
+      params: { fields: ['*'] }
+    })
   }
 
-  function getName(): void {
-    if(!firstName.value || !lastName.value) {
+  function goBack() {
+    step.value = step.value - 1
+  }
+
+  function getName() {
+    if (!firstName.value || !lastName.value) {
       errorMessage.value = 'Please enter your full Name.'
-
-      setTimeout(() => {
-        errorMessage.value =''
-      }, 3000)
+      setTimeout(() => (errorMessage.value = ''), 3000)
+      return
     }
-    else {
-      values.name = `${firstName.value} ${lastName.value}`
-      firstName.value = ''
-      lastName.value = ''
-      step.value = 2
-    }
+    values.name = `${firstName.value} ${lastName.value}`
+    firstName.value = ''
+    lastName.value = ''
+    step.value = 2
   }
 
-  function getDate(): void {
-    if (dateValue.value) {
-      values.date = dateValue.value.toString()
+  function getDate() {
+    if (!dateValue.value) return
+
+    const jsDate = new Date(dateValue.value.year, dateValue.value.month - 1, dateValue.value.day)
+    
+    const dayName = jsDate.toLocaleDateString('de-DE', { weekday: 'long' })
+
+    selectedDate.value = dates.value.find(
+      d => d.day_available && d.day === dayName
+    )
+
+    if (!selectedDate.value) {
+      errorMessage.value = 'No available times for this date.'
+      setTimeout(() => (errorMessage.value = ''), 3000)
+      return
+    }
+
+    times.value = selectedDate.value.times_available
+    values.date = dateValue.value.toString()
+    step.value = 3
+  }
+
+  function getTime(slot) {
+    selectedTime.value = slot
+    values.time = slot.times_id.time
+    step.value = 4
+  }
+
+  const submit = async () => {
+    try {
+      if (!selectedTime.value?.id) throw new Error('No time selected')
+
+      await updateItem({
+        collection: 'date_times',
+        id: selectedTime.value.id,
+        item: { time_available: false }
+      })
+
+      await createItems({
+        collection: 'bookings',
+        items: [{
+          name: values.name,
+          date: values.date,
+          time: values.time
+        }]
+      })
+
+      step.value = 5
+      await fetchBookings()
+      await fetchDates()
+
+      setTimeout(() => step.value = 1, 3000)
+
+    } catch (err) {
+      console.error(err)
       step.value = 3
     }
   }
 
-  function getTime(slot: TimeSlots): void {
-    values.time = slot.time
-    slot.available = false
-    step.value = 4
-  }
-
-  const { createItems, getItems } = useDirectusItems()
-
-  const submit = async (): Promise<void> => {
-    try {
-      const items: Values[] = [
-        {
-          name: values.name,
-          date: values.date,
-          time: values.time
-        },
-      ]
-
-      await createItems({
-        collection: 'bookings',
-        items,
-      })
-
-      console.log('Articles created successfully!')
-    } catch (error) {
-      console.error('Error creating articles:', error)
-    }
-
-    step.value = 5
-
-    fetchBookings()
-
-    setTimeout(() => {
-      step.value = 1
-    }, 3000)
-  }
-
-  onMounted(() => {
-    fetchBookings()
+  onMounted(async () => {
+    await fetchBookings()
+    await fetchDates()
   })
-  
 </script>
 
 <style scoped>
