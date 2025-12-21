@@ -52,7 +52,7 @@
               <h2 class="text-sm leading-none font-medium">Pick a Time</h2>
               <ul class="space-y-1">
                 <li v-for="slot in times" :key="slot.times_id.id" @click="getTime(slot)">
-                  <span v-if="slot.time_available && slot.times_id.time_available"
+                  <span v-if="slot.time_available" 
                         class="block w-full bg-green-500 text-white rounded-md px-2 py-1 text-center cursor-pointer">
                     {{ slot.times_id.time }}
                   </span>
@@ -101,7 +101,7 @@
       </div>
     </div>
 
-    <pre>{{dates}}</pre>
+    <pre>{{times}}</pre>
   </div>
 </template>
 
@@ -131,8 +131,9 @@
   const bookings = ref([])
   const dates = ref([])
 
+  // --- Fetch dates and bookings ---
   const fetchDates = async () => {
-    dates.value = await getItems({
+    const data = await getItems({
       collection: "dates",
       params: {
         fields: [
@@ -142,6 +143,11 @@
         ],
       },
     })
+
+    dates.value = data.map(d => ({
+      ...d,
+      has_available_times: d.times_available.some(t => t.time_available)
+    }))
   }
 
   const fetchBookings = async () => {
@@ -152,7 +158,7 @@
   }
 
   function goBack() {
-    step.value = step.value - 1
+    if (step.value > 1) step.value--
   }
 
   function getName() {
@@ -171,21 +177,19 @@
     if (!dateValue.value) return
 
     const jsDate = new Date(dateValue.value.year, dateValue.value.month - 1, dateValue.value.day)
-    
-    const dayName = jsDate.toLocaleDateString('de-DE', { weekday: 'long' })
+    const dateString = `${jsDate.getFullYear()}-${String(jsDate.getMonth()+1).padStart(2,'0')}-${String(jsDate.getDate()).padStart(2,'0')}`
 
-    selectedDate.value = dates.value.find(
-      d => d.day_available && d.day === dayName
-    )
+    selectedDate.value = dates.value.find(d => d.date === dateString && d.day_available)
 
-    if (!selectedDate.value) {
+    if (!selectedDate.value || !selectedDate.value.has_available_times) {
       errorMessage.value = 'No available times for this date.'
       setTimeout(() => (errorMessage.value = ''), 3000)
       return
     }
 
-    times.value = selectedDate.value.times_available
-    values.date = dateValue.value.toString()
+    times.value = selectedDate.value.times_available.filter(t => t.time_available)
+
+    values.date = dateString
     step.value = 3
   }
 
@@ -214,14 +218,32 @@
         }]
       })
 
-      step.value = 5
       await fetchBookings()
       await fetchDates()
 
+      const updatedDate = dates.value.find(d => d.id === selectedTime.value.dates_id)
+
+      const anyAvailable = updatedDate?.times_available.some(t => t.time_available)
+
+      if (!anyAvailable) {
+        await updateItem({
+          collection: 'dates',
+          id: updatedDate.id,
+          item: { day_available: false }
+        })
+
+        updatedDate.day_available = false
+      }
+
+      selectedDate.value = updatedDate
+      times.value = selectedDate.value?.times_available.filter(t => t.time_available) || []
+
+      step.value = 5
       setTimeout(() => step.value = 1, 3000)
 
     } catch (err) {
       console.error(err)
+      errorMessage.value = 'Something went wrong. Please try again.'
       step.value = 3
     }
   }
